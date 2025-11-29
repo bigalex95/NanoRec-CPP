@@ -7,6 +7,9 @@ on:
     branches: ["main", "develop"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build on ${{ matrix.os }}
@@ -65,3 +68,62 @@ jobs:
           path: ${{ matrix.binary_path }}
           if-no-files-found: error
           compression-level: 6
+
+  release:
+    name: Create Nightly Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NanoRec-Linux
+          path: ./release-files
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NanoRec-Windows
+          path: ./release-files
+
+      - name: Rename binaries
+        run: |
+          cd release-files
+          # Rename Linux binary
+          if [ -f "NanoRec-CPP" ]; then
+            mv NanoRec-CPP NanoRec-Linux
+            chmod +x NanoRec-Linux
+          fi
+          # Rename Windows binary
+          if [ -f "NanoRec-CPP.exe" ]; then
+            mv NanoRec-CPP.exe NanoRec-Windows.exe
+          fi
+          ls -lh
+
+      - name: Create/Update Nightly Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: nightly
+          name: Nightly Build
+          body: |
+            **Automated nightly build** from the latest `main` branch.
+
+            These binaries are built automatically on every push.
+
+            **Download:**
+            - `NanoRec-Linux` - Linux x86_64 binary
+            - `NanoRec-Windows.exe` - Windows executable
+
+            **Note:** This is a development build. For stable releases, check the [Releases](https://github.com/${{ github.repository }}/releases) page.
+
+            ---
+            **Build Info:**
+            - Commit: ${{ github.sha }}
+            - Date: ${{ github.event.head_commit.timestamp }}
+          files: |
+            release-files/NanoRec-Linux
+            release-files/NanoRec-Windows.exe
+          draft: false
+          prerelease: true
