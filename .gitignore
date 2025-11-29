@@ -39,3 +39,33 @@
 
 # debug information files
 *.dwo
+
+
+# Build Directories
+build/
+out/
+bin/
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+compile_commands.json
+
+# Compiled Objects
+*.o
+*.obj
+*.exe
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+
+# Application Artifacts
+*.mp4
+*.ppm
+*.wav
+
+# OS Specific
+.DS_Store Thumbs.db
