@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # --- Linux Specific Dependencies ---
       - name: Install Linux dependencies
