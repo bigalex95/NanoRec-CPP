@@ -52,8 +52,13 @@ list(APPEND SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Set output directory for main executable
+# Handle both single-config (Unix Makefiles) and multi-config (Visual Studio) generators
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release
+    RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/bin/RelWithDebInfo
+    RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/MinSizeRel
 )
 
 # --- 5. Include Directories ---
@@ -105,9 +110,13 @@ if(BUILD_TESTS)
         target_link_libraries(test_capture PRIVATE X11)
     endif()
 
-    # Set output directory
+    # Set output directory (handle multi-config generators)
     set_target_properties(test_capture PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/tests/Debug
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/tests/Release
+        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/bin/tests/RelWithDebInfo
+        RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/tests/MinSizeRel
     )
 
     message(STATUS "Tests enabled: test_capture -> bin/tests/")

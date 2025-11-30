@@ -24,7 +24,7 @@ jobs:
             binary_path: build/bin/NanoRec-CPP
           - os: windows-latest
             artifact_name: NanoRec-Windows
-            binary_path: build/Release/*.exe
+            binary_path: build/bin/Release/NanoRec-CPP.exe
 
     steps:
       - name: Checkout code
