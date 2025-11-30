@@ -133,7 +133,7 @@ namespace NanoRec
 
         // Performance measurement
         auto endTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
         if (duration.count() > 16)
         {
