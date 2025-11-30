@@ -46,6 +46,10 @@ Or manually:
 mkdir build && cd build
 cmake ..
 cmake --build . --config Release
+
+# Executables will be in:
+# - build/bin/NanoRec-CPP (main application)
+# - build/bin/tests/test_capture (test executable)
 ```
 
 ## 🤝 Contributing

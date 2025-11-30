@@ -27,7 +27,15 @@ set(SOURCES
     src/core/Version.cpp
     src/core/Logger.cpp
     src/core/Config.cpp
+    src/capture/ScreenCaptureFactory.cpp
 )
+
+# Platform-specific capture sources
+if(WIN32)
+    list(APPEND SOURCES src/capture/WindowsScreenCapture.cpp)
+elseif(UNIX AND NOT APPLE)
+    list(APPEND SOURCES src/capture/LinuxScreenCapture.cpp)
+endif()
 
 # ImGui Sources
 list(APPEND SOURCES
@@ -42,6 +50,11 @@ list(APPEND SOURCES
 
 # --- 4. Executable Definition ---
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Set output directory for main executable
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
 
 # --- 5. Include Directories ---
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -63,4 +76,42 @@ elseif(UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE X11 pthread dl)
 endif()
 
+# --- 8. Tests ---
+option(BUILD_TESTS "Build test executables" ON)
+
+if(BUILD_TESTS)
+    # Screen Capture Test
+    add_executable(test_capture
+        tests/test_capture.cpp
+        src/core/Logger.cpp
+        src/capture/ScreenCaptureFactory.cpp
+    )
+
+    # Add platform-specific capture implementation
+    if(WIN32)
+        target_sources(test_capture PRIVATE src/capture/WindowsScreenCapture.cpp)
+    elseif(UNIX AND NOT APPLE)
+        target_sources(test_capture PRIVATE src/capture/LinuxScreenCapture.cpp)
+    endif()
+
+    target_include_directories(test_capture PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    # Link platform-specific libraries
+    if(WIN32)
+        target_link_libraries(test_capture PRIVATE Gdi32 User32)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(test_capture PRIVATE X11)
+    endif()
+
+    # Set output directory
+    set_target_properties(test_capture PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests
+    )
+
+    message(STATUS "Tests enabled: test_capture -> bin/tests/")
+endif()
+
 message(STATUS "Build configured for: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "Executables will be in: ${CMAKE_BINARY_DIR}/bin/")
