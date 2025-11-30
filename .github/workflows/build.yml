@@ -21,7 +21,7 @@ jobs:
         include:
           - os: ubuntu-22.04
             artifact_name: NanoRec-Linux
-            binary_path: build/NanoRec-CPP
+            binary_path: build/bin/NanoRec-CPP
           - os: windows-latest
             artifact_name: NanoRec-Windows
             binary_path: build/Release/*.exe
