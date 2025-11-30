@@ -6,7 +6,7 @@
 
 _Goal: Record the screen to an .mp4 file using a CLI (no GUI yet) to ensure performance on low-end hardware._
 
-- [x] **1.1 Project Scaffolding**
+- [x] **1.1 Project Scaffolding** ✅ _Completed: 2025-11-29_
   - [x] Create directory structure (`src`, `vendor`, `build`).
   - [x] Configure `CMakeLists.txt` for cross-platform builds.
   - [x] Set up GitHub Actions for CI/CD.
