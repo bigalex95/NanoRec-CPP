@@ -34,7 +34,7 @@ namespace NanoRec
         m_screenDC = GetDC(nullptr);
         if (!m_screenDC)
         {
-            Logger::log(Logger::Level::ERROR, "Failed to get screen DC");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to get screen DC");
             return false;
         }
 
@@ -46,7 +46,7 @@ namespace NanoRec
         m_memoryDC = CreateCompatibleDC(m_screenDC);
         if (!m_memoryDC)
         {
-            Logger::log(Logger::Level::ERROR, "Failed to create compatible DC");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to create compatible DC");
             ReleaseDC(nullptr, m_screenDC);
             m_screenDC = nullptr;
             return false;
@@ -56,7 +56,7 @@ namespace NanoRec
         m_bitmap = CreateCompatibleBitmap(m_screenDC, m_width, m_height);
         if (!m_bitmap)
         {
-            Logger::log(Logger::Level::ERROR, "Failed to create compatible bitmap");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to create compatible bitmap");
             DeleteDC(m_memoryDC);
             ReleaseDC(nullptr, m_screenDC);
             m_memoryDC = nullptr;
@@ -92,7 +92,7 @@ namespace NanoRec
     {
         if (!m_initialized)
         {
-            Logger::log(Logger::Level::ERROR, "Screen capture not initialized");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Screen capture not initialized");
             return false;
         }
 
@@ -102,7 +102,7 @@ namespace NanoRec
         if (!BitBlt(m_memoryDC, 0, 0, m_width, m_height,
                     m_screenDC, 0, 0, SRCCOPY))
         {
-            Logger::log(Logger::Level::ERROR, "BitBlt failed");
+            Logger::log(Logger::Level::ERROR_LEVEL, "BitBlt failed");
             return false;
         }
 
@@ -127,7 +127,7 @@ namespace NanoRec
 
         if (scanlines == 0)
         {
-            Logger::log(Logger::Level::ERROR, "GetDIBits failed");
+            Logger::log(Logger::Level::ERROR_LEVEL, "GetDIBits failed");
             return false;
         }
 

@@ -28,7 +28,7 @@ namespace NanoRec
         Logger::log(Logger::Level::INFO, "Creating Linux X11 screen capture instance");
         return std::make_unique<LinuxScreenCapture>();
 #else
-        Logger::log(Logger::Level::ERROR, "Unsupported platform for screen capture");
+        Logger::log(Logger::Level::ERROR_LEVEL, "Unsupported platform for screen capture");
         return nullptr;
 #endif
     }

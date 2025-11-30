@@ -27,7 +27,7 @@ void saveFrameAsPPM(const FrameBuffer &buffer, const std::string &filename)
     std::ofstream file(filename, std::ios::binary);
     if (!file)
     {
-        Logger::log(Logger::Level::ERROR, "Failed to open file: " + filename);
+        Logger::log(Logger::Level::ERROR_LEVEL, "Failed to open file: " + filename);
         return;
     }
 
@@ -49,14 +49,14 @@ int main()
     auto capture = createScreenCapture();
     if (!capture)
     {
-        Logger::log(Logger::Level::ERROR, "Failed to create screen capture instance");
+        Logger::log(Logger::Level::ERROR_LEVEL, "Failed to create screen capture instance");
         return 1;
     }
 
     // Initialize
     if (!capture->initialize())
     {
-        Logger::log(Logger::Level::ERROR, "Failed to initialize screen capture");
+        Logger::log(Logger::Level::ERROR_LEVEL, "Failed to initialize screen capture");
         return 1;
     }
 
@@ -78,7 +78,7 @@ int main()
 
         if (!capture->captureFrame(buffer))
         {
-            Logger::log(Logger::Level::ERROR, "Failed to capture frame " + std::to_string(i + 1));
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to capture frame " + std::to_string(i + 1));
             continue;
         }
 

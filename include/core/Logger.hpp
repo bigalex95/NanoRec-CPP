@@ -17,7 +17,7 @@ namespace NanoRec
         {
             INFO,
             WARNING,
-            ERROR,
+            ERROR_LEVEL,
             DEBUG
         };
 

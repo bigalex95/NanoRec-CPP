@@ -33,7 +33,7 @@ namespace NanoRec
         m_display = XOpenDisplay(nullptr);
         if (!m_display)
         {
-            Logger::log(Logger::Level::ERROR, "Failed to open X display");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to open X display");
             return false;
         }
 
@@ -45,7 +45,7 @@ namespace NanoRec
         XWindowAttributes attrs;
         if (XGetWindowAttributes(m_display, m_rootWindow, &attrs) == 0)
         {
-            Logger::log(Logger::Level::ERROR, "Failed to get root window attributes");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Failed to get root window attributes");
             XCloseDisplay(m_display);
             m_display = nullptr;
             return false;
@@ -65,7 +65,7 @@ namespace NanoRec
     {
         if (!m_initialized)
         {
-            Logger::log(Logger::Level::ERROR, "Screen capture not initialized");
+            Logger::log(Logger::Level::ERROR_LEVEL, "Screen capture not initialized");
             return false;
         }
 
@@ -83,7 +83,7 @@ namespace NanoRec
 
         if (!ximage)
         {
-            Logger::log(Logger::Level::ERROR, "XGetImage failed");
+            Logger::log(Logger::Level::ERROR_LEVEL, "XGetImage failed");
             return false;
         }
 

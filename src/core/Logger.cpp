@@ -13,7 +13,7 @@ namespace NanoRec
             return "[INFO]";
         case Level::WARNING:
             return "[WARN]";
-        case Level::ERROR:
+        case Level::ERROR_LEVEL:
             return "[ERROR]";
         case Level::DEBUG:
             return "[DEBUG]";
@@ -45,7 +45,7 @@ namespace NanoRec
 
     void Logger::error(const std::string &message)
     {
-        log(Level::ERROR, message);
+        log(Level::ERROR_LEVEL, message);
     }
 
     void Logger::debug(const std::string &message)
