@@ -69,7 +69,7 @@ namespace NanoRec
             return false;
         }
 
-        auto startTime = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 
         // Capture screen using XGetImage
         XImage *ximage = XGetImage(
@@ -101,8 +101,8 @@ namespace NanoRec
         XDestroyImage(ximage);
 
         // Performance measurement
-        auto endTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
+        std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
         if (duration.count() > 16)
         {

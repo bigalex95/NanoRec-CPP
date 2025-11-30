@@ -74,7 +74,7 @@ int main()
 
     for (int i = 0; i < frameCount; ++i)
     {
-        auto startTime = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 
         if (!capture->captureFrame(buffer))
         {
@@ -82,8 +82,8 @@ int main()
             continue;
         }
 
-        auto endTime = std::chrono::steady_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
+        std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
+        std::chrono::microseconds duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
         double ms = duration.count() / 1000.0;
         totalTime += ms;
 

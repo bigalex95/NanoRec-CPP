@@ -96,7 +96,7 @@ namespace NanoRec
             return false;
         }
 
-        auto startTime = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
 
         // Capture screen to memory DC using BitBlt
         if (!BitBlt(m_memoryDC, 0, 0, m_width, m_height,
@@ -132,7 +132,7 @@ namespace NanoRec
         }
 
         // Performance measurement
-        auto endTime = std::chrono::steady_clock::now();
+        std::chrono::steady_clock::time_point endTime = std::chrono::steady_clock::now();
         std::chrono::milliseconds duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
 
         if (duration.count() > 16)
