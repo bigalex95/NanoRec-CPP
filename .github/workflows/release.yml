@@ -1,0 +1,77 @@
+name: Nightly Release
+
+on:
+  workflow_run:
+    workflows: ["Build Linux", "Build Windows"]
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Nightly Release
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NanoRec-Linux
+          path: ./release-files
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NanoRec-Windows
+          path: ./release-files
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+        continue-on-error: true
+
+      - name: Rename binaries
+        run: |
+          cd release-files
+          # Rename Linux binary if exists
+          if [ -f "NanoRec-CPP" ]; then
+            mv NanoRec-CPP NanoRec-Linux
+            chmod +x NanoRec-Linux
+          fi
+          # Rename Windows binary if exists
+          if [ -f "NanoRec-CPP.exe" ]; then
+            mv NanoRec-CPP.exe NanoRec-Windows.exe
+          fi
+          ls -lh
+
+      - name: Create/Update Nightly Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: nightly
+          name: Nightly Build
+          body: |
+            **Automated nightly build** from the latest `main` branch.
+
+            These binaries are built automatically on every push.
+
+            **Download:**
+            - `NanoRec-Linux` - Linux x86_64 binary
+            - `NanoRec-Windows.exe` - Windows executable
+
+            **Note:** This is a development build. For stable releases, check the [Releases](https://github.com/${{ github.repository }}/releases) page.
+
+            ---
+            **Build Info:**
+            - Commit: ${{ github.event.workflow_run.head_sha }}
+            - Date: ${{ github.event.workflow_run.updated_at }}
+          files: |
+            release-files/NanoRec-Linux
+            release-files/NanoRec-Windows.exe
+          draft: false
+          prerelease: true
