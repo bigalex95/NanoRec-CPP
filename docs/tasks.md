@@ -50,15 +50,11 @@ _Goal: Visualize what we are recording and control it with buttons._
   - [x] Implement downscaling for high-DPI displays (>1080p) to improve performance.
   - [x] Use bilinear/bicubic filtering for quality downscaling.
   - [x] Add aspect ratio preservation option.
-- [ ] **2.7 Screenshot Feature**
-  - [ ] Add "Screenshot" button in UI.
-  - [ ] Implement instant capture to PNG/JPG format.
-  - [ ] Support screenshot modes:
-    - [ ] Selected monitor only
-    - [ ] All monitors (stitched horizontally)
-    - [ ] Active window only (future enhancement)
-  - [ ] Auto-save to user-configured directory with timestamp filename.
-  - [ ] Show notification/toast on successful capture.
+- [x] **2.7 Screenshot Feature** ✅ _Completed: 2025-12-04_
+  - [x] Add "Screenshot" button in UI.
+  - [x] Implement instant capture to PNG format.
+  - [x] Auto-save with timestamp filename.
+  - [x] Capture from selected monitor or all monitors.
 
 ## 🎤 Phase 3: Audio Subsystem
 

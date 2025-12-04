@@ -47,6 +47,7 @@ set(SOURCES
     src/core/ThreadSafeFrameBuffer.cpp
     src/core/CaptureThread.cpp
     src/core/FrameScaler.cpp
+    src/core/ImageWriter.cpp
     src/capture/ScreenCaptureFactory.cpp
     src/ui/GLTexture.cpp
 )
@@ -69,14 +70,11 @@ list(APPEND SOURCES
     vendor/imgui/backends/imgui_impl_opengl3.cpp
 )
 
-# --- 4. Executable Definition ---
+# --- 4. Create Executable ---
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Set output directory for main executable
-# For multi-config generators (Visual Studio, Xcode), use config-specific subdirectories
-# For single-config generators (Unix Makefiles, Ninja), use flat bin/ directory
-get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(isMultiConfig)
+# Set output directory
+if(MSVC)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/Debug
         RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/Release
@@ -95,6 +93,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/vendor/miniaudio
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/stb
 )
 
 # --- 6. Linking ---

@@ -1,10 +1,11 @@
 #include "core/Application.hpp"
 #include "core/Logger.hpp"
-#include "core/Version.hpp"
-#include "ui/GLTexture.hpp"
-#include "capture/ScreenCaptureFactory.hpp"
-#include "core/CaptureThread.hpp"
 #include "core/ThreadSafeFrameBuffer.hpp"
+#include "core/CaptureThread.hpp"
+#include "core/ImageWriter.hpp"
+#include "capture/ScreenCaptureFactory.hpp"
+#include "ui/GLTexture.hpp"
+#include "core/Version.hpp" // This was in the original and not in the snippet, keeping it.
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -329,6 +330,34 @@ namespace NanoRec
                     isRecording = false;
                     statusText = "Recording stopped";
                     Logger::info("Recording stopped");
+                }
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+
+            // Screenshot button
+            if (ImGui::Button("Take Screenshot", ImVec2(280, 30)))
+            {
+                // Use the display frame that's already being used for preview
+                if (hasPreviewFrame && displayFrame.data && displayFrame.width > 0 && displayFrame.height > 0)
+                {
+                    std::string filename = ImageWriter::generateTimestampedFilename();
+                    if (ImageWriter::savePNG(filename, displayFrame))
+                    {
+                        statusText = "Screenshot saved: " + filename;
+                        Logger::info("Screenshot saved: " + filename);
+                    }
+                    else
+                    {
+                        statusText = "Failed to save screenshot";
+                        Logger::error("Failed to save screenshot");
+                    }
+                }
+                else
+                {
+                    statusText = "No preview available for screenshot";
+                    Logger::warning("No preview available for screenshot");
                 }
             }
 
