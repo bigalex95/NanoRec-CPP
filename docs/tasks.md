@@ -27,12 +27,12 @@ _Goal: Record the screen to an .mp4 file using a CLI (no GUI yet) to ensure perf
 
 _Goal: Visualize what we are recording and control it with buttons._
 
-- [ ] **2.1 Windowing System**
-  - [ ] Initialize GLFW and create a window.
-  - [ ] Setup OpenGL context (GL 3.0+).
-- [ ] **2.2 ImGui Integration**
-  - [ ] Initialize ImGui context within GLFW.
-  - [ ] Create a basic layout: "Start", "Stop", "Status".
+- [x] **2.1 Windowing System** ✅ _Completed: 2025-12-04_
+  - [x] Initialize GLFW and create a window.
+  - [x] Setup OpenGL context (GL 3.0+).
+- [x] **2.2 ImGui Integration** ✅ _Completed: 2025-12-04_
+  - [x] Initialize ImGui context within GLFW.
+  - [x] Create a basic layout: "Start", "Stop", "Status".
 - [ ] **2.3 Real-Time Preview**
   - [ ] Create an OpenGL Texture from the captured screen buffer.
   - [ ] Update texture every frame (efficiently) to show a preview in the UI.

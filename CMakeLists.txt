@@ -78,7 +78,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # --- 6. Linking ---
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
+find_package(OpenGL REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL)
 
 # --- 7. Platform Specifics ---
 if(WIN32)
@@ -172,7 +173,66 @@ if(BUILD_TESTS)
         )
     endif()
 
-    message(STATUS "Tests enabled: test_capture, test_recording -> bin/tests/")
+    # Window Test (GLFW + OpenGL)
+    add_executable(test_window
+        tests/test_window.cpp
+        src/core/Logger.cpp
+    )
+
+    target_include_directories(test_window PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    target_link_libraries(test_window PRIVATE glfw OpenGL::GL)
+
+    # Set output directory (handle multi-config generators)
+    if(isMultiConfig)
+        set_target_properties(test_window PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/tests/Debug
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/tests/Release
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/bin/tests/RelWithDebInfo
+            RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/tests/MinSizeRel
+        )
+    else()
+        set_target_properties(test_window PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests
+        )
+    endif()
+
+    # ImGui Basic Test
+    add_executable(test_imgui_basic
+        tests/test_imgui_basic.cpp
+        src/core/Logger.cpp
+        vendor/imgui/imgui.cpp
+        vendor/imgui/imgui_draw.cpp
+        vendor/imgui/imgui_tables.cpp
+        vendor/imgui/imgui_widgets.cpp
+        vendor/imgui/backends/imgui_impl_glfw.cpp
+        vendor/imgui/backends/imgui_impl_opengl3.cpp
+    )
+
+    target_include_directories(test_imgui_basic PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui
+    )
+
+    target_link_libraries(test_imgui_basic PRIVATE glfw OpenGL::GL)
+
+    # Set output directory (handle multi-config generators)
+    if(isMultiConfig)
+        set_target_properties(test_imgui_basic PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/tests/Debug
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/tests/Release
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/bin/tests/RelWithDebInfo
+            RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/tests/MinSizeRel
+        )
+    else()
+        set_target_properties(test_imgui_basic PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests
+        )
+    endif()
+
+    message(STATUS "Tests enabled: test_capture, test_recording, test_window, test_imgui_basic -> bin/tests/")
 endif()
 
 message(STATUS "Build configured for: ${CMAKE_SYSTEM_NAME}")
