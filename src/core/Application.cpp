@@ -39,6 +39,17 @@ namespace NanoRec
         std::vector<MonitorInfo> availableMonitors;
         int selectedMonitorId = -1;  // -1 = all monitors
 
+        // Resolution settings
+        enum class ResolutionMode {
+            Native,      // No scaling
+            HD_1080p,    // 1920x1080
+            HD_720p,     // 1280x720
+            Custom       // User-defined
+        };
+        ResolutionMode resolutionMode = ResolutionMode::Native;
+        int customWidth = 1920;
+        int customHeight = 1080;
+
         // Screen Capture (threaded)
         std::unique_ptr<IScreenCapture> screenCapture;
         ThreadSafeFrameBuffer frameBuffer;
@@ -236,6 +247,32 @@ namespace NanoRec
             ImGui::Text("Capture FPS: %.1f", fps);
             
             ImGui::Separator();
+            ImGui::Spacing();
+
+            // Resolution selection
+            ImGui::Separator();
+            ImGui::Text("Output Resolution:");
+            
+            if (ImGui::RadioButton("Native (No Scaling)", resolutionMode == ResolutionMode::Native))
+                resolutionMode = ResolutionMode::Native;
+            if (ImGui::RadioButton("1080p (1920x1080)", resolutionMode == ResolutionMode::HD_1080p))
+                resolutionMode = ResolutionMode::HD_1080p;
+            if (ImGui::RadioButton("720p (1280x720)", resolutionMode == ResolutionMode::HD_720p))
+                resolutionMode = ResolutionMode::HD_720p;
+            if (ImGui::RadioButton("Custom", resolutionMode == ResolutionMode::Custom))
+                resolutionMode = ResolutionMode::Custom;
+            
+            // Custom resolution inputs
+            if (resolutionMode == ResolutionMode::Custom)
+            {
+                ImGui::Indent();
+                ImGui::InputInt("Width", &customWidth);
+                ImGui::InputInt("Height", &customHeight);
+                ImGui::Unindent();
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
 
             // Start/Stop buttons
             if (!isRecording)
@@ -249,7 +286,29 @@ namespace NanoRec
                     ss << "recording_" << std::put_time(std::localtime(&time_t), "%Y%m%d_%H%M%S") << ".mp4";
                     std::string filename = ss.str();
 
-                    if (captureThread.startRecording(filename, 30))
+                    // Determine target resolution
+                    int targetWidth = 0, targetHeight = 0;
+                    switch (resolutionMode)
+                    {
+                        case ResolutionMode::Native:
+                            targetWidth = 0;  // 0 = native
+                            targetHeight = 0;
+                            break;
+                        case ResolutionMode::HD_1080p:
+                            targetWidth = 1920;
+                            targetHeight = 1080;
+                            break;
+                        case ResolutionMode::HD_720p:
+                            targetWidth = 1280;
+                            targetHeight = 720;
+                            break;
+                        case ResolutionMode::Custom:
+                            targetWidth = customWidth;
+                            targetHeight = customHeight;
+                            break;
+                    }
+
+                    if (captureThread.startRecording(filename, 30, targetWidth, targetHeight))
                     {
                         isRecording = true;
                         statusText = "Recording: " + filename;

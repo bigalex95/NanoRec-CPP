@@ -1,5 +1,6 @@
 #include "core/CaptureThread.hpp"
 #include "core/Logger.hpp"
+#include "core/FrameScaler.hpp"
 #include <chrono>
 #include <iomanip>
 #include <sstream>
@@ -68,7 +69,8 @@ namespace NanoRec
         Logger::info("Capture thread stopped");
     }
 
-    bool CaptureThread::startRecording(const std::string &filename, int fps)
+    bool CaptureThread::startRecording(const std::string &filename, int fps, 
+                                       int targetWidth, int targetHeight)
     {
         if (m_recording.load())
         {
@@ -85,13 +87,30 @@ namespace NanoRec
         m_recordingFilename = filename;
         m_recordingFPS = fps;
 
+        // Get capture dimensions
+        int captureWidth = m_screenCapture->getWidth();
+        int captureHeight = m_screenCapture->getHeight();
+
+        // Determine recording dimensions
+        if (targetWidth == 0 || targetHeight == 0)
+        {
+            // Use native resolution
+            m_recordingWidth = captureWidth;
+            m_recordingHeight = captureHeight;
+            m_useScaling = false;
+        }
+        else
+        {
+            // Use target resolution with scaling
+            m_recordingWidth = targetWidth;
+            m_recordingHeight = targetHeight;
+            m_useScaling = (targetWidth != captureWidth || targetHeight != captureHeight);
+        }
+
         // Create video writer
         m_videoWriter = std::make_unique<FFmpegVideoWriter>();
 
-        int width = m_screenCapture->getWidth();
-        int height = m_screenCapture->getHeight();
-
-        VideoConfig config(width, height, fps, filename);
+        VideoConfig config(m_recordingWidth, m_recordingHeight, fps, filename);
         if (!m_videoWriter->initialize(config))
         {
             Logger::error("Failed to initialize video writer");
@@ -100,8 +119,13 @@ namespace NanoRec
         }
 
         m_recording.store(true);
-        Logger::info("Recording started: " + filename + " (" + std::to_string(width) + "x" +
-                     std::to_string(height) + " @ " + std::to_string(fps) + " FPS)");
+        
+        std::string scalingInfo = m_useScaling ? 
+            " (scaled from " + std::to_string(captureWidth) + "x" + std::to_string(captureHeight) + ")" : "";
+        
+        Logger::info("Recording started: " + filename + " (" + 
+                    std::to_string(m_recordingWidth) + "x" + std::to_string(m_recordingHeight) + 
+                    " @ " + std::to_string(fps) + " FPS)" + scalingInfo);
         return true;
     }
 
@@ -128,6 +152,8 @@ namespace NanoRec
 
         FrameBuffer captureBuffer;
         captureBuffer.allocate(m_screenCapture->getWidth(), m_screenCapture->getHeight());
+        
+        FrameBuffer scaledBuffer;  // For scaled recording
 
         auto lastFrameTime = std::chrono::high_resolution_clock::now();
         int frameCount = 0;
@@ -146,7 +172,20 @@ namespace NanoRec
                 // Write to video if recording
                 if (m_recording.load() && m_videoWriter)
                 {
-                    m_videoWriter->writeFrame(captureBuffer.data, captureBuffer.size);
+                    if (m_useScaling)
+                    {
+                        // Scale frame before encoding
+                        if (FrameScaler::scaleFrame(captureBuffer, scaledBuffer, 
+                                                   m_recordingWidth, m_recordingHeight))
+                        {
+                            m_videoWriter->writeFrame(scaledBuffer.data, scaledBuffer.size);
+                        }
+                    }
+                    else
+                    {
+                        // Write directly without scaling
+                        m_videoWriter->writeFrame(captureBuffer.data, captureBuffer.size);
+                    }
                 }
 
                 frameCount++;

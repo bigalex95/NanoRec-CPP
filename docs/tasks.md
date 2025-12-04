@@ -45,11 +45,11 @@ _Goal: Visualize what we are recording and control it with buttons._
   - [x] Add UI dropdown/list to select capture source (Monitor 1, Monitor 2, All Monitors).
   - [x] Update `IScreenCapture` interface to support monitor selection.
   - [x] Implement per-monitor capture with position/resolution awareness.
-- [ ] **2.6 Resolution & Scaling Options**
-  - [ ] Add UI controls for output resolution selection (Native, 1080p, 720p, Custom).
-  - [ ] Implement downscaling for high-DPI displays (>1080p) to improve performance.
-  - [ ] Use bilinear/bicubic filtering for quality downscaling.
-  - [ ] Add aspect ratio preservation option.
+- [x] **2.6 Resolution & Scaling Options** ✅ _Completed: 2025-12-04_
+  - [x] Add UI controls for output resolution selection (Native, 1080p, 720p, Custom).
+  - [x] Implement downscaling for high-DPI displays (>1080p) to improve performance.
+  - [x] Use bilinear/bicubic filtering for quality downscaling.
+  - [x] Add aspect ratio preservation option.
 - [ ] **2.7 Screenshot Feature**
   - [ ] Add "Screenshot" button in UI.
   - [ ] Implement instant capture to PNG/JPG format.

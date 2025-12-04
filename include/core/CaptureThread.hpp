@@ -39,9 +39,12 @@ namespace NanoRec
          * @brief Start recording to file
          * @param filename Output filename
          * @param fps Frames per second
+         * @param targetWidth Target width (0 = native resolution)
+         * @param targetHeight Target height (0 = native resolution)
          * @return true if recording started
          */
-        bool startRecording(const std::string &filename, int fps = 30);
+        bool startRecording(const std::string &filename, int fps = 30, 
+                          int targetWidth = 0, int targetHeight = 0);
 
         /**
          * @brief Stop recording
@@ -78,6 +81,11 @@ namespace NanoRec
 
         std::string m_recordingFilename;
         int m_recordingFPS{30};
+        
+        // Scaling support
+        int m_recordingWidth{0};
+        int m_recordingHeight{0};
+        bool m_useScaling{false};
     };
 
 } // namespace NanoRec
