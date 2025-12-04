@@ -3,6 +3,11 @@
 
 #include <GLFW/glfw3.h>
 
+// Define GL_CLAMP_TO_EDGE if not available (Windows OpenGL 1.1 headers)
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
+
 namespace NanoRec
 {
 
