@@ -44,6 +44,8 @@ set(SOURCES
     src/core/Logger.cpp
     src/core/Config.cpp
     src/core/FFmpegVideoWriter.cpp
+    src/core/ThreadSafeFrameBuffer.cpp
+    src/core/CaptureThread.cpp
     src/capture/ScreenCaptureFactory.cpp
     src/ui/GLTexture.cpp
 )

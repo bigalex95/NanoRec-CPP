@@ -3,11 +3,16 @@
 #include "core/Version.hpp"
 #include "ui/GLTexture.hpp"
 #include "capture/ScreenCaptureFactory.hpp"
+#include "core/CaptureThread.hpp"
+#include "core/ThreadSafeFrameBuffer.hpp"
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 namespace NanoRec
 {
@@ -29,9 +34,11 @@ namespace NanoRec
         bool isRecording = false;
         std::string statusText = "Ready";
 
-        // Screen Capture
+        // Screen Capture (threaded)
         std::unique_ptr<IScreenCapture> screenCapture;
-        FrameBuffer frameBuffer;
+        ThreadSafeFrameBuffer frameBuffer;
+        CaptureThread captureThread;
+        FrameBuffer displayFrame;  // For UI display
         GLTexture previewTexture;
         bool hasPreviewFrame = false;
 
@@ -186,6 +193,16 @@ namespace NanoRec
                          std::to_string(screenCapture->getWidth()) + "x" +
                          std::to_string(screenCapture->getHeight()));
 
+            // Initialize thread-safe frame buffer
+            frameBuffer.initialize(screenCapture->getWidth(), screenCapture->getHeight());
+
+            // Start capture thread
+            if (!captureThread.start(screenCapture.get(), &frameBuffer))
+            {
+                Logger::error("Failed to start capture thread");
+                return false;
+            }
+
             return true;
         }
 
@@ -198,12 +215,17 @@ namespace NanoRec
 
             // Create main control window
             ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(300, 180), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(300, 220), ImGuiCond_FirstUseEver);
 
             ImGui::Begin("NanoRec Controls", nullptr, ImGuiWindowFlags_NoCollapse);
 
             // Status display
             ImGui::Text("Status: %s", statusText.c_str());
+            
+            // FPS display
+            double fps = captureThread.getCurrentFPS();
+            ImGui::Text("Capture FPS: %.1f", fps);
+            
             ImGui::Separator();
 
             // Start/Stop buttons
@@ -211,17 +233,33 @@ namespace NanoRec
             {
                 if (ImGui::Button("Start Recording", ImVec2(280, 30)))
                 {
-                    isRecording = true;
-                    statusText = "Recording...";
-                    Logger::info("Recording started");
+                    // Generate filename with timestamp
+                    auto now = std::chrono::system_clock::now();
+                    auto time_t = std::chrono::system_clock::to_time_t(now);
+                    std::stringstream ss;
+                    ss << "recording_" << std::put_time(std::localtime(&time_t), "%Y%m%d_%H%M%S") << ".mp4";
+                    std::string filename = ss.str();
+
+                    if (captureThread.startRecording(filename, 30))
+                    {
+                        isRecording = true;
+                        statusText = "Recording: " + filename;
+                        Logger::info("Recording started: " + filename);
+                    }
+                    else
+                    {
+                        statusText = "Failed to start recording";
+                        Logger::error("Failed to start recording");
+                    }
                 }
             }
             else
             {
                 if (ImGui::Button("Stop Recording", ImVec2(280, 30)))
                 {
+                    captureThread.stopRecording();
                     isRecording = false;
-                    statusText = "Stopped";
+                    statusText = "Recording stopped";
                     Logger::info("Recording stopped");
                 }
             }
@@ -296,23 +334,15 @@ namespace NanoRec
                 // Poll events
                 glfwPollEvents();
 
-                // Capture frame for preview (throttled to ~30 FPS for performance)
-                static double lastCaptureTime = 0.0;
-                double currentTime = glfwGetTime();
-                if (currentTime - lastCaptureTime >= 1.0 / 30.0) // 30 FPS
+                // Get latest frame from capture thread for preview
+                if (frameBuffer.hasNewFrame())
                 {
-                    // Allocate frame buffer on first capture
-                    if (screenCapture && frameBuffer.data == nullptr)
-                    {
-                        frameBuffer.allocate(screenCapture->getWidth(), screenCapture->getHeight());
-                    }
-
-                    if (screenCapture && screenCapture->captureFrame(frameBuffer))
+                    if (frameBuffer.getLatestFrame(displayFrame))
                     {
                         // Create or update texture
                         if (!previewTexture.isValid())
                         {
-                            if (previewTexture.create(frameBuffer.width, frameBuffer.height, frameBuffer.data, 3))
+                            if (previewTexture.create(displayFrame.width, displayFrame.height, displayFrame.data, 3))
                             {
                                 hasPreviewFrame = true;
                                 Logger::info("Preview texture created");
@@ -320,11 +350,9 @@ namespace NanoRec
                         }
                         else
                         {
-                            previewTexture.update(frameBuffer.data);
+                            previewTexture.update(displayFrame.data);
                         }
                     }
-
-                    lastCaptureTime = currentTime;
                 }
 
                 // Clear screen with a dark gray color
@@ -343,6 +371,16 @@ namespace NanoRec
 
         void cleanup()
         {
+            // Stop capture thread
+            Logger::info("Stopping capture thread...");
+            captureThread.stop();
+
+            // Shutdown screen capture
+            if (screenCapture)
+            {
+                screenCapture->shutdown();
+            }
+
             // Cleanup ImGui
             if (window)
             {

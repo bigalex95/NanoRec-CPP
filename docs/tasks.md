@@ -36,9 +36,10 @@ _Goal: Visualize what we are recording and control it with buttons._
 - [x] **2.3 Real-Time Preview** ✅ _Completed: 2025-12-04_
   - [x] Create an OpenGL Texture from the captured screen buffer.
   - [x] Update texture every frame (efficiently) to show a preview in the UI.
-- [ ] **2.4 Multithreading**
-  - [ ] Move `ScreenCapture` loop to a background thread (`std::thread`).
-  - [ ] Use `std::atomic` or `std::mutex` to safely share frames between the Recorder and the UI Preview.
+- [x] **2.4 Multithreading** ✅ _Completed: 2025-12-04_
+  - [x] Move `ScreenCapture` loop to a background thread (`std::thread`).
+  - [x] Use `std::atomic` or `std::mutex` to safely share frames between the Recorder and the UI Preview.
+  - [x] Integrate FFmpegVideoWriter for actual video recording.
 - [ ] **2.5 Multi-Monitor Support**
   - [ ] Enumerate all connected displays (X11: XRandR / Windows: EnumDisplayMonitors).
   - [ ] Add UI dropdown/list to select capture source (Monitor 1, Monitor 2, All Monitors).
