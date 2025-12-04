@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(NanoRec-CPP VERSION 0.1.0 LANGUAGES CXX)
 
 # --- 1. Project Settings ---
@@ -11,11 +11,20 @@ if(MSVC)
     # Use static runtime library to avoid VCRUNTIME140_1.dll dependency
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     message(STATUS "Windows: Using static runtime library (no VCRUNTIME DLL needed)")
+    
+    # Set policy to apply runtime library to all targets (including GLFW)
+    cmake_policy(SET CMP0091 NEW)
 endif()
 
 # --- 2. Dependencies (GLFW) ---
 # Download GLFW automatically
 include(FetchContent)
+
+# Force GLFW to use the same static runtime
+if(MSVC)
+    set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+endif()
+
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw

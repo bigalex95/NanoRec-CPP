@@ -24,8 +24,23 @@ jobs:
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Verify CMake version
+        run: |
+          cmake --version
+          echo "CMake 3.15+ is required for static runtime linking"
+        shell: pwsh
+
       - name: Configure CMake
-        run: cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        run: |
+          echo "Configuring with static runtime library..."
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        shell: pwsh
+
+      - name: Verify CMake configuration
+        run: |
+          echo "Checking CMake cache for runtime library setting..."
+          Get-Content build/CMakeCache.txt | Select-String -Pattern "CMAKE_MSVC_RUNTIME_LIBRARY"
+        shell: pwsh
 
       - name: Build
         run: cmake --build build --config Release --parallel
@@ -34,7 +49,30 @@ jobs:
         run: |
           echo "Checking build output..."
           Get-ChildItem -Path build\bin -Recurse
-          Test-Path build\bin\Release\NanoRec-CPP.exe
+          if (Test-Path build\bin\Release\NanoRec-CPP.exe) {
+            echo "✓ Executable found"
+          } else {
+            echo "✗ Executable not found"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Check DLL dependencies
+        run: |
+          echo "Checking DLL dependencies..."
+          $exe = "build\bin\Release\NanoRec-CPP.exe"
+          
+          # Use dumpbin to check dependencies (part of MSVC)
+          dumpbin /dependents $exe
+          
+          # Check if VCRUNTIME DLLs are in dependencies
+          $deps = dumpbin /dependents $exe | Out-String
+          if ($deps -match "VCRUNTIME140") {
+            echo "⚠️ WARNING: Executable still depends on VCRUNTIME DLLs!"
+            echo "Static linking may not be working correctly."
+          } else {
+            echo "✓ No VCRUNTIME DLL dependencies found - static linking successful!"
+          }
         shell: pwsh
 
       - name: Upload binary
