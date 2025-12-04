@@ -100,6 +100,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 find_package(OpenGL REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL)
 
+# Platform-specific libraries
+if(UNIX AND NOT APPLE)
+    # Linux: X11 and XRandR for multi-monitor support
+    find_package(X11 REQUIRED)
+    if(NOT X11_Xrandr_FOUND)
+        message(FATAL_ERROR "XRandR library not found. Install libxrandr-dev")
+    endif()
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${X11_LIBRARIES} ${X11_Xrandr_LIB})
+endif()
+
 # --- 7. Platform Specifics ---
 if(WIN32)
     # Windows System Libraries

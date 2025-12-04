@@ -33,6 +33,11 @@ namespace NanoRec
         // UI State
         bool isRecording = false;
         std::string statusText = "Ready";
+        bool showPreview = true;
+
+        // Multi-monitor support
+        std::vector<MonitorInfo> availableMonitors;
+        int selectedMonitorId = -1;  // -1 = all monitors
 
         // Screen Capture (threaded)
         std::unique_ptr<IScreenCapture> screenCapture;
@@ -193,6 +198,10 @@ namespace NanoRec
                          std::to_string(screenCapture->getWidth()) + "x" +
                          std::to_string(screenCapture->getHeight()));
 
+            // Enumerate available monitors
+            availableMonitors = screenCapture->enumerateMonitors();
+            Logger::info("Found " + std::to_string(availableMonitors.size()) + " monitors");
+
             // Initialize thread-safe frame buffer
             frameBuffer.initialize(screenCapture->getWidth(), screenCapture->getHeight());
 
@@ -262,6 +271,76 @@ namespace NanoRec
                     statusText = "Recording stopped";
                     Logger::info("Recording stopped");
                 }
+            }
+
+            ImGui::Separator();
+
+            // Monitor selection dropdown
+            std::string currentMonitorName = (selectedMonitorId == -1) ? "All Monitors" 
+                : (selectedMonitorId < static_cast<int>(availableMonitors.size()) 
+                    ? availableMonitors[selectedMonitorId].getDisplayName() 
+                    : "Unknown");
+            
+            if (ImGui::BeginCombo("Monitor", currentMonitorName.c_str()))
+            {
+                // "All Monitors" option
+                bool isSelected = (selectedMonitorId == -1);
+                if (ImGui::Selectable("All Monitors", isSelected))
+                {
+                    if (selectedMonitorId != -1)  // Only update if changing
+                    {
+                        selectedMonitorId = -1;
+                        if (screenCapture)
+                        {
+                            // Stop capture thread
+                            captureThread.stop();
+                            
+                            // Select new monitor
+                            screenCapture->selectMonitor(-1);
+                            
+                            // Reinitialize frame buffer for new dimensions
+                            frameBuffer.initialize(screenCapture->getWidth(), screenCapture->getHeight());
+                            
+                            // Restart capture thread
+                            captureThread.start(screenCapture.get(), &frameBuffer);
+                            
+                            // Clear preview to force update
+                            hasPreviewFrame = false;
+                        }
+                    }
+                }
+
+                // Individual monitors
+                for (size_t i = 0; i < availableMonitors.size(); ++i)
+                {
+                    isSelected = (selectedMonitorId == static_cast<int>(i));
+                    if (ImGui::Selectable(availableMonitors[i].getDisplayName().c_str(), isSelected))
+                    {
+                        if (selectedMonitorId != static_cast<int>(i))  // Only update if changing
+                        {
+                            selectedMonitorId = static_cast<int>(i);
+                            if (screenCapture)
+                            {
+                                // Stop capture thread
+                                captureThread.stop();
+                                
+                                // Select new monitor
+                                screenCapture->selectMonitor(selectedMonitorId);
+                                
+                                // Reinitialize frame buffer for new dimensions
+                                frameBuffer.initialize(screenCapture->getWidth(), screenCapture->getHeight());
+                                
+                                // Restart capture thread
+                                captureThread.start(screenCapture.get(), &frameBuffer);
+                                
+                                // Clear preview to force update
+                                hasPreviewFrame = false;
+                            }
+                        }
+                    }
+                }
+
+                ImGui::EndCombo();
             }
 
             ImGui::Spacing();
@@ -339,17 +418,29 @@ namespace NanoRec
                 {
                     if (frameBuffer.getLatestFrame(displayFrame))
                     {
-                        // Create or update texture
-                        if (!previewTexture.isValid())
+                        // Check if texture needs to be recreated (dimensions changed)
+                        bool needsRecreate = !previewTexture.isValid() || 
+                                            previewTexture.getWidth() != displayFrame.width ||
+                                            previewTexture.getHeight() != displayFrame.height;
+                        
+                        if (needsRecreate)
                         {
+                            // Destroy old texture if it exists
+                            if (previewTexture.isValid())
+                            {
+                                previewTexture.destroy();
+                            }
+                            
+                            // Create new texture with correct dimensions
                             if (previewTexture.create(displayFrame.width, displayFrame.height, displayFrame.data, 3))
                             {
                                 hasPreviewFrame = true;
-                                Logger::info("Preview texture created");
+                                Logger::info("Preview texture created: " + std::to_string(displayFrame.width) + "x" + std::to_string(displayFrame.height));
                             }
                         }
                         else
                         {
+                            // Update existing texture
                             previewTexture.update(displayFrame.data);
                         }
                     }

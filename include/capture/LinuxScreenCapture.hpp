@@ -14,6 +14,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/extensions/Xrandr.h>
 
 namespace NanoRec
 {
@@ -23,7 +24,7 @@ namespace NanoRec
      * @brief X11-based screen capture for Linux systems
      *
      * Uses XGetImage to capture the root window (desktop) contents.
-     * Designed for minimal latency to achieve 60 FPS capture.
+     * Supports multi-monitor enumeration via XRandR extension.
      */
     class LinuxScreenCapture : public IScreenCapture
     {
@@ -33,8 +34,13 @@ namespace NanoRec
 
         bool initialize() override;
         bool captureFrame(FrameBuffer &buffer) override;
-        int getWidth() const override { return m_width; }
-        int getHeight() const override { return m_height; }
+        int getWidth() const override { return m_captureWidth; }
+        int getHeight() const override { return m_captureHeight; }
+        
+        std::vector<MonitorInfo> enumerateMonitors() override;
+        bool selectMonitor(int monitorId) override;
+        int getCurrentMonitor() const override { return m_selectedMonitor; }
+        
         void shutdown() override;
 
     private:
@@ -45,12 +51,28 @@ namespace NanoRec
         int m_height;        ///< Screen height
         bool m_initialized;  ///< Initialization state
 
+        // Multi-monitor support
+        int m_selectedMonitor;           ///< Selected monitor ID (-1 = all)
+        std::vector<MonitorInfo> m_monitors;  ///< Available monitors
+        int m_captureX, m_captureY;      ///< Capture region position
+        int m_captureWidth, m_captureHeight; ///< Capture region size
+
         /**
          * @brief Convert X11 image data to RGB24 format
          * @param ximage X11 image structure
          * @param buffer Destination buffer
          */
         void convertToRGB24(XImage *ximage, FrameBuffer &buffer);
+        
+        /**
+         * @brief Enumerate monitors using XRandR
+         */
+        void enumerateMonitorsXRandR();
+        
+        /**
+         * @brief Update capture region based on selected monitor
+         */
+        void updateCaptureRegion();
     };
 
 } // namespace NanoRec

@@ -11,6 +11,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <vector>
+#include "MonitorInfo.hpp"
 
 namespace NanoRec
 {
@@ -112,7 +114,7 @@ namespace NanoRec
          * @param buffer FrameBuffer to store captured data
          * @return true if capture succeeded, false otherwise
          *
-         * @note This method must complete in < 16ms for 60 FPS operation
+         * @note This method must complete in <16ms for 60 FPS operation
          */
         virtual bool captureFrame(FrameBuffer &buffer) = 0;
 
@@ -127,6 +129,25 @@ namespace NanoRec
          * @return Height in pixels
          */
         virtual int getHeight() const = 0;
+
+        /**
+         * @brief Enumerate all available monitors
+         * @return Vector of MonitorInfo structures
+         */
+        virtual std::vector<MonitorInfo> enumerateMonitors() = 0;
+
+        /**
+         * @brief Select which monitor to capture
+         * @param monitorId Monitor ID (-1 for all monitors, 0+ for specific monitor)
+         * @return true if monitor selection succeeded
+         */
+        virtual bool selectMonitor(int monitorId) = 0;
+
+        /**
+         * @brief Get currently selected monitor ID
+         * @return Monitor ID (-1 for all monitors, 0+ for specific monitor)
+         */
+        virtual int getCurrentMonitor() const = 0;
 
         /**
          * @brief Shutdown and cleanup resources

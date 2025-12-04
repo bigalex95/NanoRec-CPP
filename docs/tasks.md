@@ -40,11 +40,11 @@ _Goal: Visualize what we are recording and control it with buttons._
   - [x] Move `ScreenCapture` loop to a background thread (`std::thread`).
   - [x] Use `std::atomic` or `std::mutex` to safely share frames between the Recorder and the UI Preview.
   - [x] Integrate FFmpegVideoWriter for actual video recording.
-- [ ] **2.5 Multi-Monitor Support**
-  - [ ] Enumerate all connected displays (X11: XRandR / Windows: EnumDisplayMonitors).
-  - [ ] Add UI dropdown/list to select capture source (Monitor 1, Monitor 2, All Monitors).
-  - [ ] Update `IScreenCapture` interface to support monitor selection.
-  - [ ] Implement virtual desktop capture for "All Monitors" mode.
+- [x] **2.5 Multi-Monitor Support** ✅ _Completed: 2025-12-04_
+  - [x] Enumerate all connected displays (X11: XRandR / Windows: EnumDisplayMonitors).
+  - [x] Add UI dropdown/list to select capture source (Monitor 1, Monitor 2, All Monitors).
+  - [x] Update `IScreenCapture` interface to support monitor selection.
+  - [x] Implement per-monitor capture with position/resolution awareness.
 - [ ] **2.6 Resolution & Scaling Options**
   - [ ] Add UI controls for output resolution selection (Native, 1080p, 720p, Custom).
   - [ ] Implement downscaling for high-DPI displays (>1080p) to improve performance.

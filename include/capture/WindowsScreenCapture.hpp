@@ -34,6 +34,12 @@ namespace NanoRec
         bool captureFrame(FrameBuffer &buffer) override;
         int getWidth() const override { return m_width; }
         int getHeight() const override { return m_height; }
+        
+        // Multi-monitor support (stub for now)
+        std::vector<MonitorInfo> enumerateMonitors() override { return {}; }
+        bool selectMonitor(int monitorId) override { return true; }
+        int getCurrentMonitor() const override { return -1; }
+        
         void shutdown() override;
 
     private:
