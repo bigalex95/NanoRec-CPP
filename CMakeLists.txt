@@ -35,6 +35,17 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
+# --- 2.1 Platform-Specific Dependencies ---
+# Find X11 and XRandR early so variables are available for all targets
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    if(NOT X11_Xrandr_FOUND)
+        message(FATAL_ERROR "XRandR library not found. Install libxrandr-dev")
+    endif()
+    message(STATUS "X11 libraries: ${X11_LIBRARIES}")
+    message(STATUS "XRandR library: ${X11_Xrandr_LIB}")
+endif()
+
 # --- 3. Source Files ---
 # Main Application Sources
 set(SOURCES
@@ -102,11 +113,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL)
 
 # Platform-specific libraries
 if(UNIX AND NOT APPLE)
-    # Linux: X11 and XRandR for multi-monitor support
-    find_package(X11 REQUIRED)
-    if(NOT X11_Xrandr_FOUND)
-        message(FATAL_ERROR "XRandR library not found. Install libxrandr-dev")
-    endif()
+    # Linux: X11 and XRandR for multi-monitor support (already found globally)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${X11_LIBRARIES} ${X11_Xrandr_LIB})
 endif()
 
@@ -145,7 +152,7 @@ if(BUILD_TESTS)
     if(WIN32)
         target_link_libraries(test_capture PRIVATE Gdi32 User32)
     elseif(UNIX AND NOT APPLE)
-        target_link_libraries(test_capture PRIVATE X11)
+        target_link_libraries(test_capture PRIVATE ${X11_LIBRARIES} ${X11_Xrandr_LIB})
     endif()
 
     # Set output directory (handle multi-config generators)
@@ -185,7 +192,7 @@ if(BUILD_TESTS)
     if(WIN32)
         target_link_libraries(test_recording PRIVATE Gdi32 User32)
     elseif(UNIX AND NOT APPLE)
-        target_link_libraries(test_recording PRIVATE X11)
+        target_link_libraries(test_recording PRIVATE ${X11_LIBRARIES} ${X11_Xrandr_LIB})
     endif()
 
     # Set output directory (handle multi-config generators)
