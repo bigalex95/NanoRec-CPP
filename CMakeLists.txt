@@ -27,6 +27,7 @@ set(SOURCES
     src/core/Version.cpp
     src/core/Logger.cpp
     src/core/Config.cpp
+    src/core/FFmpegVideoWriter.cpp
     src/capture/ScreenCaptureFactory.cpp
 )
 
@@ -131,7 +132,47 @@ if(BUILD_TESTS)
         )
     endif()
 
-    message(STATUS "Tests enabled: test_capture -> bin/tests/")
+    # Screen Recording Test
+    add_executable(test_recording
+        tests/test_recording.cpp
+        src/core/Logger.cpp
+        src/core/FFmpegVideoWriter.cpp
+        src/capture/ScreenCaptureFactory.cpp
+    )
+
+    # Add platform-specific capture implementation
+    if(WIN32)
+        target_sources(test_recording PRIVATE src/capture/WindowsScreenCapture.cpp)
+    elseif(UNIX AND NOT APPLE)
+        target_sources(test_recording PRIVATE src/capture/LinuxScreenCapture.cpp)
+    endif()
+
+    target_include_directories(test_recording PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+    )
+
+    # Link platform-specific libraries
+    if(WIN32)
+        target_link_libraries(test_recording PRIVATE Gdi32 User32)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(test_recording PRIVATE X11)
+    endif()
+
+    # Set output directory (handle multi-config generators)
+    if(isMultiConfig)
+        set_target_properties(test_recording PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin/tests/Debug
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin/tests/Release
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/bin/tests/RelWithDebInfo
+            RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_BINARY_DIR}/bin/tests/MinSizeRel
+        )
+    else()
+        set_target_properties(test_recording PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/tests
+        )
+    endif()
+
+    message(STATUS "Tests enabled: test_capture, test_recording -> bin/tests/")
 endif()
 
 message(STATUS "Build configured for: ${CMAKE_SYSTEM_NAME}")

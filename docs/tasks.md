@@ -16,12 +16,12 @@ _Goal: Record the screen to an .mp4 file using a CLI (no GUI yet) to ensure perf
   - [x] Implement `LinuxScreenCapture` using X11 (XGetImage).
   - [x] **Benchmark:** ~47ms on 4K+ (4480x1440), optimized direct memory access.
   - **Note:** Performance scales with resolution. Target met on 1080p, larger resolutions need GPU acceleration (Phase 5).
-- [ ] **1.3 The FFmpeg Pipe**
-  - [ ] Create `VideoWriter` class that spawns an `ffmpeg` subprocess.
-  - [ ] Implement `PipeWriter` to push raw RGB bytes to `ffmpeg` stdin.
-  - [ ] Handle subprocess start/stop signals safely.
-- [ ] **1.4 Integration Test**
-  - [ ] Create a console app that records 10 seconds of screen and saves `output.mp4`.
+- [x] **1.3 The FFmpeg Pipe** ✅ _Completed: 2025-12-04_
+  - [x] Create `VideoWriter` class that spawns an `ffmpeg` subprocess.
+  - [x] Implement `PipeWriter` to push raw RGB bytes to `ffmpeg` stdin.
+  - [x] Handle subprocess start/stop signals safely.
+- [x] **1.4 Integration Test** ✅ _Completed: 2025-12-04_
+  - [x] Create a console app that records 10 seconds of screen and saves `output.mp4`.
 
 ## 🖥️ Phase 2: User Interface (ImGui & OpenGL)
 
