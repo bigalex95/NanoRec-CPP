@@ -6,6 +6,13 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # Useful for clangd/VSCode
 
+# --- 1.1 Windows Static Runtime (eliminates VCRUNTIME DLL dependency) ---
+if(MSVC)
+    # Use static runtime library to avoid VCRUNTIME140_1.dll dependency
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    message(STATUS "Windows: Using static runtime library (no VCRUNTIME DLL needed)")
+endif()
+
 # --- 2. Dependencies (GLFW) ---
 # Download GLFW automatically
 include(FetchContent)
