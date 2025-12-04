@@ -1,6 +1,8 @@
 #include "core/Application.hpp"
 #include "core/Logger.hpp"
 #include "core/Version.hpp"
+#include "ui/GLTexture.hpp"
+#include "capture/ScreenCaptureFactory.hpp"
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -26,6 +28,12 @@ namespace NanoRec
         // UI State
         bool isRecording = false;
         std::string statusText = "Ready";
+
+        // Screen Capture
+        std::unique_ptr<IScreenCapture> screenCapture;
+        FrameBuffer frameBuffer;
+        GLTexture previewTexture;
+        bool hasPreviewFrame = false;
 
         bool initializeGLFW()
         {
@@ -160,6 +168,24 @@ namespace NanoRec
                 return false;
             }
 
+            // Initialize screen capture
+            screenCapture = createScreenCapture();
+            if (!screenCapture)
+            {
+                Logger::error("Failed to create screen capture");
+                return false;
+            }
+
+            if (!screenCapture->initialize())
+            {
+                Logger::error("Failed to initialize screen capture");
+                return false;
+            }
+
+            Logger::info("Screen capture initialized: " +
+                         std::to_string(screenCapture->getWidth()) + "x" +
+                         std::to_string(screenCapture->getHeight()));
+
             return true;
         }
 
@@ -172,7 +198,7 @@ namespace NanoRec
 
             // Create main control window
             ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(300, 150), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(300, 180), ImGuiCond_FirstUseEver);
 
             ImGui::Begin("NanoRec Controls", nullptr, ImGuiWindowFlags_NoCollapse);
 
@@ -202,6 +228,12 @@ namespace NanoRec
 
             ImGui::Spacing();
 
+            // Preview toggle
+            static bool showPreview = true;
+            ImGui::Checkbox("Show Preview", &showPreview);
+
+            ImGui::Spacing();
+
             // Quit button
             if (ImGui::Button("Quit", ImVec2(280, 30)))
             {
@@ -210,6 +242,44 @@ namespace NanoRec
             }
 
             ImGui::End();
+
+            // Preview window
+            if (showPreview && hasPreviewFrame && previewTexture.isValid())
+            {
+                ImGui::SetNextWindowPos(ImVec2(320, 10), ImGuiCond_FirstUseEver);
+                ImGui::SetNextWindowSize(ImVec2(640, 400), ImGuiCond_FirstUseEver);
+
+                ImGui::Begin("Preview", &showPreview);
+
+                // Get available content region
+                ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+
+                // Calculate scaled size to fit in window while maintaining aspect ratio
+                float textureAspect = (float)previewTexture.getWidth() / (float)previewTexture.getHeight();
+                float windowAspect = contentRegion.x / contentRegion.y;
+
+                ImVec2 imageSize;
+                if (textureAspect > windowAspect)
+                {
+                    // Texture is wider than window
+                    imageSize.x = contentRegion.x;
+                    imageSize.y = contentRegion.x / textureAspect;
+                }
+                else
+                {
+                    // Texture is taller than window
+                    imageSize.y = contentRegion.y;
+                    imageSize.x = contentRegion.y * textureAspect;
+                }
+
+                // Display texture
+                ImGui::Image((void *)(intptr_t)previewTexture.getTextureID(), imageSize);
+
+                // Show resolution info
+                ImGui::Text("Resolution: %dx%d", previewTexture.getWidth(), previewTexture.getHeight());
+
+                ImGui::End();
+            }
 
             // Render ImGui
             ImGui::Render();
@@ -225,6 +295,37 @@ namespace NanoRec
             {
                 // Poll events
                 glfwPollEvents();
+
+                // Capture frame for preview (throttled to ~30 FPS for performance)
+                static double lastCaptureTime = 0.0;
+                double currentTime = glfwGetTime();
+                if (currentTime - lastCaptureTime >= 1.0 / 30.0) // 30 FPS
+                {
+                    // Allocate frame buffer on first capture
+                    if (screenCapture && frameBuffer.data == nullptr)
+                    {
+                        frameBuffer.allocate(screenCapture->getWidth(), screenCapture->getHeight());
+                    }
+
+                    if (screenCapture && screenCapture->captureFrame(frameBuffer))
+                    {
+                        // Create or update texture
+                        if (!previewTexture.isValid())
+                        {
+                            if (previewTexture.create(frameBuffer.width, frameBuffer.height, frameBuffer.data, 3))
+                            {
+                                hasPreviewFrame = true;
+                                Logger::info("Preview texture created");
+                            }
+                        }
+                        else
+                        {
+                            previewTexture.update(frameBuffer.data);
+                        }
+                    }
+
+                    lastCaptureTime = currentTime;
+                }
 
                 // Clear screen with a dark gray color
                 glClearColor(0.15f, 0.15f, 0.15f, 1.0f);

@@ -45,6 +45,7 @@ set(SOURCES
     src/core/Config.cpp
     src/core/FFmpegVideoWriter.cpp
     src/capture/ScreenCaptureFactory.cpp
+    src/ui/GLTexture.cpp
 )
 
 # Platform-specific capture sources

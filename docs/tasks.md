@@ -33,9 +33,9 @@ _Goal: Visualize what we are recording and control it with buttons._
 - [x] **2.2 ImGui Integration** ✅ _Completed: 2025-12-04_
   - [x] Initialize ImGui context within GLFW.
   - [x] Create a basic layout: "Start", "Stop", "Status".
-- [ ] **2.3 Real-Time Preview**
-  - [ ] Create an OpenGL Texture from the captured screen buffer.
-  - [ ] Update texture every frame (efficiently) to show a preview in the UI.
+- [x] **2.3 Real-Time Preview** ✅ _Completed: 2025-12-04_
+  - [x] Create an OpenGL Texture from the captured screen buffer.
+  - [x] Update texture every frame (efficiently) to show a preview in the UI.
 - [ ] **2.4 Multithreading**
   - [ ] Move `ScreenCapture` loop to a background thread (`std::thread`).
   - [ ] Use `std::atomic` or `std::mutex` to safely share frames between the Recorder and the UI Preview.
