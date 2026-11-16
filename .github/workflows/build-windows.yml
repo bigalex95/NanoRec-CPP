@@ -33,7 +33,7 @@ jobs:
       - name: Configure CMake
         run: |
           echo "Configuring with static runtime library..."
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -A x64 -DCMAKE_BUILD_TYPE=Release
         shell: pwsh
 
       - name: Verify CMake configuration
