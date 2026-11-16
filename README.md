@@ -23,8 +23,7 @@ A C++20 screen recorder for Linux (X11) and Windows (GDI) with a Dear ImGui cont
 flowchart LR
   A[Screen capture<br/>X11 / GDI] --> B[CaptureThread]
   B --> C[ThreadSafeFrameBuffer]
-  C --> D[FrameScaler]
-  D --> E[FFmpegVideoWriter<br/>pipe to ffmpeg]
+  B --> E[FFmpegVideoWriter<br/>pipe to ffmpeg]
   C --> F[ImGui preview<br/>GLTexture]
 ```
 
