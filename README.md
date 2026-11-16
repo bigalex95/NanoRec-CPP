@@ -1,61 +1,78 @@
-# NanoRec-CPP 🎥
+# NanoRec-CPP
 
-![Build Status](https://github.com/bigalex95/NanoRec-CPP/actions/workflows/build.yml/badge.svg)
+A C++20 screen recorder for Linux (X11) and Windows (GDI) with a Dear ImGui control panel. Frames are captured on a worker thread and piped to the FFmpeg CLI for encoding. Work in progress.
+
+[![Build Linux](https://github.com/bigalex95/NanoRec-CPP/actions/workflows/build-linux.yml/badge.svg)](https://github.com/bigalex95/NanoRec-CPP/actions/workflows/build-linux.yml)
+[![Build Windows](https://github.com/bigalex95/NanoRec-CPP/actions/workflows/build-windows.yml/badge.svg)](https://github.com/bigalex95/NanoRec-CPP/actions/workflows/build-windows.yml)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![C++](https://img.shields.io/badge/std-c%2B%2B20-blue)
 
-**NanoRec-CPP** is a high-performance, cross-platform screen recorder designed to run efficiently on legacy hardware (tested on 2014 laptops) while providing modern AI features.
+<!-- TODO: demo GIF -->
 
-## 🚀 Features (Planned)
+## Features (implemented)
 
-- [ ] **Core:** Low-latency Screen Capture (GDI / X11).
-- [ ] **Video:** Hardware-accelerated encoding via FFmpeg piping.
-- [ ] **Audio:** System audio & Microphone capture using MiniAudio.
-- [ ] **UI:** Lightweight Overlay using Dear ImGui & OpenGL.
-- [ ] **AI:** Local audio transcription and summarization using Whisper.cpp.
+- Screen capture: X11 + XRandR on Linux, GDI on Windows, behind an `IScreenCapture` interface and a factory; multi-monitor enumeration.
+- Capture on a dedicated thread, handing frames over through a thread-safe frame buffer.
+- Video encoding by piping raw RGB frames to the `ffmpeg` executable (default `libx264`, 1080p, 60 fps config values in `Config`).
+- Screenshot saving via stb_image_write.
+- ImGui + OpenGL (GLFW) UI: Start/Stop Recording, Take Screenshot, live preview toggle.
 
-## 🛠 Tech Stack
+## How it works
 
-- **Language:** C++20
-- **Build System:** CMake
-- **GUI:** Dear ImGui + GLFW
-- **Audio:** MiniAudio
-- **Video Backend:** FFmpeg (CLI Pipe)
-- **AI Backend:** Whisper.cpp (quantized models)
+```mermaid
+flowchart LR
+  A[Screen capture<br/>X11 / GDI] --> B[CaptureThread]
+  B --> C[ThreadSafeFrameBuffer]
+  B --> E[FFmpegVideoWriter<br/>pipe to ffmpeg]
+  C --> F[ImGui preview<br/>GLTexture]
+```
 
-## 📥 Building from Source
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/SCREEN_CAPTURE.md](docs/SCREEN_CAPTURE.md), [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md).
 
-### Prerequisites
+## Tech stack
 
-- **Linux:** `sudo apt install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev ffmpeg`
-- **Windows:** Visual Studio 2022 (C++ Desktop Dev), CMake, FFmpeg installed in PATH.
+C++20, CMake (3.15+), GLFW 3.3.8 (fetched by CMake), Dear ImGui (git submodule), stb_image_write and miniaudio (vendored single headers), FFmpeg CLI at runtime.
 
-### Build Steps
+## Build and run
+
+Prerequisites:
+
+- Linux: `sudo apt install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev ffmpeg`
+- Windows: Visual Studio 2022 (C++ desktop workload), CMake, FFmpeg on `PATH` (see [docs/WINDOWS_BUILD.md](docs/WINDOWS_BUILD.md)).
 
 ```bash
-git clone https://github.com/bigalex95/NanoRec-CPP.git
+git clone --recurse-submodules https://github.com/bigalex95/NanoRec-CPP.git
 cd NanoRec-CPP
-./scripts/setup.sh      # Download dependencies
-./scripts/build.sh      # Build the project
-./scripts/run.sh        # Run the application
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+./build/bin/NanoRec-CPP
 ```
 
-Or manually:
+Helper scripts `scripts/build.sh`, `scripts/run.sh` and `scripts/build_and_run.sh` wrap the same steps. `BUILD_TESTS` (default ON) also builds `test_capture`, `test_recording`, `test_window` and `test_imgui_basic` into `build/bin/tests/`. These are manual demo programs that need a display, not automated tests; see [tests/README.md](tests/README.md).
 
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
+## Project structure
 
-# Executables will be in:
-# - build/bin/NanoRec-CPP (main application)
-# - build/bin/tests/test_capture (test executable)
+```
+include/      public headers (capture/, core/, ui/)
+src/          capture backends, core (Application, CaptureThread, FFmpegVideoWriter, ...), ui
+vendor/       imgui (submodule), stb, miniaudio
+tests/        manual demo programs
+docs/         architecture, developer guide, build notes, task list
+scripts/      build / run helpers
+.github/      workflows: build-linux, build-windows, release
 ```
 
-## 🤝 Contributing
+## Status and roadmap
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+Prototype. Not yet done or measured:
+
+- [ ] Audio capture (microphone/system) with miniaudio: the header is vendored and `Config` has audio fields, but no capture code exists.
+- [ ] Local audio transcription and summarization with whisper.cpp (planned, no code yet).
+- [ ] Hardware-accelerated encoding options.
+- [ ] Performance measurements (CPU use, dropped frames) on low-end hardware. No such numbers exist yet.
+- [ ] Automated tests with assertions (current tests are manual demos).
+- [ ] Screenshot/GIF of the UI.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party: Dear ImGui (MIT), stb (public domain / MIT), miniaudio (public domain / MIT-0), GLFW (zlib).
